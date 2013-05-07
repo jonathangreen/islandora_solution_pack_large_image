@@ -2,17 +2,16 @@
 
 /**
  * @file
- *
- * This file contains all the functions for image manipulation used in the large image solution pack.
+ * Functions for image manipulation used in the large image solution pack.
  */
 
 /**
- * Creates the derivatives for this content model type
+ * Creates the derivatives for this content model type.
  *
  * @param FedoraObject $object
  *   The object to add derivatives to.
  *
- * @return boolean
+ * @return bool
  *   TRUE if all derivatives were created successfully, FALSE otherwise.
  */
 function islandora_large_image_create_all_derivatives(AbstractFedoraObject $object) {
@@ -35,9 +34,9 @@ function islandora_large_image_create_all_derivatives(AbstractFedoraObject $obje
  * Fetches the upload image file from Fedora, and saves it to a temp location.
  *
  * @param FedoraObject $object
- *  The object to fetch the uploaded image file from.
+ *   The object to fetch the uploaded image file from.
  * @param string $base_name
- *  The base name to use in creating temp files.
+ *   The base name to use in creating temp files.
  *
  * @return string
  *   The file path to the temp file if successful, FALSE otherwise.
@@ -60,11 +59,11 @@ function islandora_large_image_get_uploaded_file(AbstractFedoraObject $object, $
  * @param string $base_name
  *   The base name to use in creating temp files.
  *
- * @return boolean
+ * @return bool
  *   TRUE if successful, FALSE otherwise.
  */
 function islandora_large_image_create_JP2_derivative(AbstractFedoraObject $object, $uploaded_file, $base_name) {
-  // create JP2 with kakadu
+  // Create JP2 with kakadu.
   module_load_include('inc', 'islandora_large_image', 'includes/utilities');
   $kakadu = variable_get('islandora_use_kakadu', !islandora_large_image_check_imagemagick_for_jpeg2000());
   $mime = strtolower($object['OBJ']->mimetype);
@@ -73,10 +72,13 @@ function islandora_large_image_create_JP2_derivative(AbstractFedoraObject $objec
   }
 
   if ($kakadu) {
-    $derivative_file = islandora_large_image_kdu_compress($uploaded_file, "temporary://{$base_name}_JP2.jp2"); // Create JP2
+    // Create JP2
+    $derivative_file = islandora_large_image_kdu_compress($uploaded_file, "temporary://{$base_name}_JP2.jp2");
     if (!$derivative_file) {
       drupal_set_message(t("Kakadu failed. Trying ImageMagick ..."));
-      $kakadu = FALSE; //forces retry with IMageMagick if Kakadu has failed - allows compressed tiffs if unsupported by Kakadu version
+      // Forces retry with IMageMagick if Kakadu has failed - allows compressed tiffs if unsupported by
+      // Kakadu version.
+      $kakadu = FALSE;
     }
   }
   if (!$kakadu) {
@@ -100,7 +102,7 @@ function islandora_large_image_create_JP2_derivative(AbstractFedoraObject $objec
  * @param string $base_name
  *   The base name to use in creating temp files.
  *
- * @return boolean
+ * @return bool
  *   TRUE if successful, FALSE otherwise.
  */
 function islandora_large_image_create_JPG_derivative(AbstractFedoraObject $object, $uploaded_file, $base_name) {
@@ -143,14 +145,15 @@ function islandora_large_image_create_TN_derivative(AbstractFedoraObject $object
 }
 
 /**
- * Calls kdu_compress with the given arguments, or defaults if none are provided.
+ * Calls kdu_compress with given arguments, or defaults if none are provided.
  *
  * @param string $src
  *   The source file to pass to kdu_compress
  * @param string $dest
  *   The destination file which kdu_compress will generate.
  * @param string $args
- *   Any additional arguments for kdu_compress, if not provided reasonable defaults will be used.
+ *   Additional args for kdu_compress, if not provided reasonable defaults
+ *   will be used.
  *
  * @return
  *   Returns the newly generated file uri or FALSE if the conversion failed
@@ -195,14 +198,19 @@ function islandora_large_image_kdu_compress($src, $dest, $args = NULL) {
   }
 
   if ($ret != 0 || $ret_palette != 0) {
-    $message = 'Kakadu failed to create derivatives<br/>Error: @ret<br/>Command: @command <br/>Output !output';
-    $variables = array('@ret' => $ret, '@command' => $command, '!output' => implode('<br/>', $output));
-    watchdog('islandora_large_image', $message, $variables, WATCHDOG_ERROR);
+    watchdog('islandora_large_image',
+             'Kakadu failed to create derivatives<br/>Error: @ret<br/>Command: @command <br/>Output !output',
+             array(
+              '@ret' => $ret,
+              '@command' => $command,
+              '!output' => implode('<br/>', $output)),
+             WATCHDOG_ERROR
+    );
     return FALSE;
   }
 
   if ($unlink_source) {
-    unlink($src);
+    domxml_unlike_node($src);
   }
 
   return $dest;
@@ -231,17 +239,17 @@ function islandora_large_image_imagemagick_convert($src, $dest, $args) {
     'destination' => $dest,
   );
   drupal_alter('imagemagick_arguments', $args, $context);
-  /**
-   * To make use of ImageMagick 6's parenthetical command grouping we need to make the $source image the first parameter and $dest the last.
-   * See http://www.imagemagick.org/Usage/basics/#cmdline
-   */
+   // To make use of ImageMagick 6's parenthetical command grouping we need
+   // to make the $source image the first parameter and $dest the last.
+   // See http://www.imagemagick.org/Usage/basics/#cmdline
   $command = escapeshellarg($src) . ' ' . implode(' ', $args) . ' ' . escapeshellarg($dest);
   $output = '';
   $ret = -1;
   if (_imagemagick_convert_exec($command, $output, $ret) !== TRUE) {
-    $message = 'ImageMagick failed to create derivatives<br/>Error: @ret<br/>Command: @command<br/>Output: @output';
-    $variables = array('@ret' => $ret, '@command' => $command, '@output' => $output);
-    watchdog('islandora_large_image', $message, $variables, WATCHDOG_ERROR);
+    watchdog('islandora_large_image',
+             'ImageMagick failed to create derivatives<br/>Error: @ret<br/>Command: @command<br/>Output: @output',
+              $array('@ret' => $ret, '@command' => $command, '@output' => $output),
+              WATCHDOG_ERROR);
     return FALSE;
   }
   return $dest;
@@ -270,7 +278,8 @@ function islandora_large_image_add_datastream(AbstractFedoraObject $object, $dsi
   $ds->setContentFromFile($file);
   try {
     $object->ingestDatastream($ds);
-  } catch (exception $e) {
+  }
+  catch (exception $e) {
     drupal_set_message(t('@message', array('@message' => check_plain($e->getMessage()))), 'error');
     return FALSE;
   }
@@ -278,7 +287,7 @@ function islandora_large_image_add_datastream(AbstractFedoraObject $object, $dsi
 }
 
 /**
- * Return preconfigured paramaters for ImageMagick JP2 creation
+ * Return preconfigured paramaters for ImageMagick JP2 creation.
  * @return array
  *
  */
@@ -316,7 +325,7 @@ function islandora_large_image_get_args() {
  * @param string $file
  *   A file-system path to the file in question.
  *
- * @return boolean
+ * @return bool
  *   A boolean indicating if the file contains a TIFF which is not compressed,
  *   (if it could be reencoded by the "free" version of Kakadu.
  */
@@ -338,7 +347,7 @@ function islandora_large_image_is_uncompressed_tiff($file) {
  * @param string $file
  *   A file-system path to the file in question.
  *
- * @return boolean
+ * @return bool
  *   A boolean indicating if the file contains a TIFF.
  */
 function islandora_large_image_is_tiff($file) {
@@ -363,12 +372,11 @@ function islandora_large_image_is_tiff($file) {
  *   The command to run for "identify".
  */
 function islandora_large_image_get_identify() {
-  // Get path for convert
+  // Get path for convert.
   $convert = variable_get('imagemagick_convert', 'convert');
 
-  // Replace "convert" with "identify"
+  // Replace "convert" with "identify".
   $identify = str_replace('convert', 'identify', $convert);
 
   return $identify;
 }
-
