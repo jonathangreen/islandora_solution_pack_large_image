@@ -29,14 +29,15 @@ function islandora_large_image_image_upload_form(array $form, array &$form_state
       '#upload_location' => 'temporary://',
       '#upload_validators' => array(
         'file_validate_extensions' => $extensions,
-        'file_validate_size' => array($upload_size * 1024 * 1024), // In MB.
+        // In MB.
+        'file_validate_size' => array($upload_size * 1024 * 1024),
       ),
     )
   );
 }
 
 /**
- * Submit handler, adds uploaded file to ingest object
+ * Submit handler, adds uploaded file to ingest object.
  *
  * @param array $form
  *   The drupal form.

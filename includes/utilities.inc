@@ -3,6 +3,10 @@
 /**
  * @file
  * Determine if ImageMagick appears to support JPEG-2000.
+ */
+
+/**
+ *
  *
  * @return bool
  *   If JPEG-2000 appears in the list of supported formats.
