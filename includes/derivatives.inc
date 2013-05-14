@@ -249,7 +249,7 @@ function islandora_large_image_imagemagick_convert($src, $dest, $args) {
   if (_imagemagick_convert_exec($command, $output, $ret) !== TRUE) {
     watchdog('islandora_large_image',
              'ImageMagick failed to create derivatives<br/>Error: @ret<br/>Command: @command<br/>Output: @output',
-              $array('@ret' => $ret, '@command' => $command, '@output' => $output),
+              array('@ret' => $ret, '@command' => $command, '@output' => $output),
               WATCHDOG_ERROR);
     return FALSE;
   }
