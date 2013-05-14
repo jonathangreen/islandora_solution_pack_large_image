@@ -6,7 +6,7 @@
  */
 
 /**
- *
+ * Check to see if image magick supports jpeg2000s.
  *
  * @return bool
  *   If JPEG-2000 appears in the list of supported formats.

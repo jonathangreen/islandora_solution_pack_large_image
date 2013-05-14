@@ -32,7 +32,7 @@ function islandora_large_image_image_upload_form(array $form, array &$form_state
         // In MB.
         'file_validate_size' => array($upload_size * 1024 * 1024),
       ),
-    )
+    ),
   );
 }
 

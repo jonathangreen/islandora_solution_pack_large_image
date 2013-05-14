@@ -103,7 +103,7 @@ function islandora_large_image_admin_submit($form, &$form_state) {
 }
 
 /**
- *
+ * Ajax callback function.
  */
 function islandora_update_kakadu_url_div($form, $form_state) {
   return $form['islandora_kakadu_url'];
